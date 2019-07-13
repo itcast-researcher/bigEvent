@@ -35,7 +35,6 @@
             <div class="level01"><a  href="user.html" target="main_frame"><i class="iconfont icon-user"></i><span>个人中心</span></a></div>
         </div>
     </div>
-
     <div class="header_bar">        
         <form class="search_form">
             <input type="text" placeholder="请输入搜索内容">
@@ -44,16 +43,14 @@
         <div class="user_center_link">
             <a href="user.html" onclick="setMenu(3,0)" target="main_frame">个人中心</a>
             <img src="images/2.jpg" alt="person">
-            <a href="#"><i class="iconfont icon-tuichu"></i> 退出</a>
+            <a href="javascript:;" id="logout"><i class="iconfont icon-tuichu"></i>退出</a>
         </div>
     </div>
-
     <div class="main" id="main_body">
-        <iframe src="main_count.html" frameborder="0" id="main_frame" name="main_frame" frameborder="0" scrolling="auto"></iframe>
+        <iframe src="main_count.html" frameborder="0" id="main_frame" name="main_frame" frameborder="0" scrolling="auto">
+            
+        </iframe>
     </div>
-
-
-
     <script>
         var $level01 = $('.level01');
         var $subli = $('.level02 li')
@@ -91,7 +88,6 @@
             resizeFrame();
         })
 
-
         function setMenu(m,n){
            $level01.eq(m).addClass('active').siblings().not('.level02').removeClass('active');
            if(m!=1){              
@@ -101,8 +97,31 @@
               $('.level02').children().eq(n).addClass('active').siblings().removeClass('active');
            }
         }
-
     </script>
-
+    <script type="text/javascript">
+        /*
+            1. 选中退出按钮并为其添加点击事件
+            2. 在事件处理函数中弹出确认提示框，跟管理员确认是否真的要退出，防止管理员误操作
+            3. 向服务器端发送Ajax请求，执行退出操作
+            4. 如果退出成功，跳转到登录页面
+        */
+        
+        $('#logout').on('click', function () {
+            if(confirm('您真的要退出吗')) {
+                $.ajax({
+                    type: 'post',
+                    url: 'http://localhost:8000/admin/logout',
+                    success: function (response) {
+                        if (response.code == 200) {
+                            // 退出成功
+                            location.href = 'login.html';
+                        } else {
+                            alert('系统异常, 退出失败')
+                        }
+                    }
+                })
+            }
+        })
+    </script>
 </body>
 </html>

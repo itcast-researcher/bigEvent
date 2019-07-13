@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/iconfont.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="js/bootstrap/css/bootstrap.min.css">
 </head>
 
 <body>
@@ -17,20 +18,81 @@
             <a href="#" class="logo"><img src="images/logo.png" alt=""></a>
             <div class="copyright">CopyRight © 2019 深圳百秀信息技术股份有限公司<br>All Rights Reserved</div>
         </div>
-
         <div class="login_form_con">
             <div class="login_title"></div>
-            <form class="login_form" action="index.html">
+            <form class="login_form" id="loginForm">
                 <i class="iconfont icon-user"></i>
                 <i class="iconfont icon-key"></i>
-                <input type="text" class="input_txt" placeholder="邮箱/手机号">
-                <input type="password" class="input_pass" placeholder="密码">
+                <input type="text" class="input_txt" placeholder="邮箱/手机号" id="username">
+                <input type="password" class="input_pass" placeholder="密码" id="password">
                 <input type="submit" class="input_sub" value="登 录">
             </form>
         </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">提示</h4>
+          </div>
+          <div class="modal-body">
+            登录失败
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="js/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        /*
+            1. 为登录表单添加表单提交事件，在事件处理函数中阻止表单默认提交行为
+            2. 当管理员提交表单时，获取到管理员在表单中输入的用户名和密码
+            3. 对管理员输入的用户名和密码进行非空验证
+            4. 将用户名和密码通过Ajax请求发送到服务器端
+            5. 管理员登录成功，跳转到网站后台首页，管理员登录失败，清空表单中用户名和密码，提示用户重新输入
+        */
+        $('#loginForm').on('submit', function (e) {
+            // 获取到管理员在表单中输入的用户名和密码
+            var username = $('#username').val().trim();
+            var password = $('#password').val().trim();
+            
+            if (!username || !password) {
+                // alert('请输入用户名或者密码')
+                $('#myModal').modal()
+                // 阻止代码向下执行
+                return false;
+            }
 
-    </div> 
+            // 向服务器端发送请求 实现登录功能
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/login',
+                data: {
+                    username: username,
+                    password: password
+                },
+                success: function (response) {
+                    if (response.code == 200) {
+                        // 登录成功
+                        location.href = 'index.html';
+                    }else {
+                        // 登录失败
+                        $('#username').val('')
+                        $('#password').val('')
+                        $('#myModal').modal()
+                    }
+                }
+            })
 
+            // 阻止表单默认提交行为
+            e.preventDefault()
+        })
+    </script>
 </body>
 
 </html>
