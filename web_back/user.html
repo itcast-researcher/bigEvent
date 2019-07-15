@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>文章列表</title>
+    <title>个人中心</title>
     <link rel="stylesheet" href="js/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
-
+    <script src="js/template-web.js"></script>
 </head>
 
 <body>
@@ -20,51 +20,114 @@
             用户信息修改
         </div>
         <div class="container-fluid common_con">
-            <form class="form-horizontal article_form">
-                <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-2 control-label">用户名称：</label>
-                    <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="李思思">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-2 control-label">昵称：</label>
-                    <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="思思">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-2 control-label">邮箱：</label>
-                    <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="lisisi@126.com">
-                    </div>
-                </div>
+            <form class="form-horizontal article_form" id="userForm">
                 
-                <div class="form-group">
-                    <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
-                    <div class="col-sm-10">
-                        <img src="images/2.jpg" alt="" class="user_pic">
-                        <input type="file" id="exampleInputFile">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                        <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
-                        <div class="col-sm-4">
-                            <input type="password" class="form-control" id="inputEmail3" value="12345678">
-                        </div>
-                    </div>
-               
-    
-                <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">修改</button>
-                    </div>
-                </div>
             </form>
         </div>
     </div>
+    <script type="text/html" id="userTpl">
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">用户名称：</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="inputEmail3" value="{{username}}" name="username">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">昵称：</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="inputEmail3" value="{{nickname}}" name="nickname">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">邮箱：</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="inputEmail3" value="{{email}}" name="email">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
+            <div class="col-sm-10">
+                <img src="{{user_pic}}" alt="" class="user_pic" id="preview">
+                <input type="file" id="exampleInputFile" name="user_pic">
+            </div>
+        </div>
 
+        <div class="form-group">
+                <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
+                <div class="col-sm-4">
+                    <input type="password" class="form-control" id="inputEmail3" value="{{password}}" name="password">
+                </div>
+            </div>
+        
+        
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-success">修改</button>
+            </div>
+        </div>
+    </script>
+    <script type="text/javascript">
+        /*
+            1. 向服务器端发送请求，获取管理员信息
+            2. 利用模板引擎，将管理员信息和HTML模板进行拼接
+            3. 将模板引擎的拼接结果显示在页面中
+        */
+        
+        $.ajax({
+            type: 'get',
+            url: 'http://localhost:8000/admin/userinfo_get',
+            success: function (response) {
+                console.log(response)
+                // 使用模板引擎拼接html字符串
+                var html = template('userTpl', response.data);
+                // 将模板引擎拼接好的字符串展示在页面中
+                $('#userForm').html(html);
+            }
+        })
+
+        /*
+            实现管理员头像预览功能
+
+            1. 获取头像选择控件并为其添加onchange事件
+            2. 在事件处理函数中获取到管理员选择到的头像文件
+            3. 将头像文件对象转换为url地址
+            4. 将转换后的头像地址赋值给img标签的src属性
+        */
+        
+        // 通过事件委托的方式为文件选择控件添加change事件
+        $('#userForm').on('change', '#exampleInputFile', function () {
+            // 将头像文件对象转换为url地址
+            var url = URL.createObjectURL(this.files[0])
+            $('#preview').attr('src', url);
+        })
+
+        /*
+            1. 为管理员信息修改表单添加表单提交事件，在事件处理函数中阻止表单默认提交行为
+            2. 在表单提交事件处理函数中通过formData对象获取表单中管理员填写的数据
+            3. 向服务器端发送Ajax请求，将表单数据提交到服务器端，以实现管理员信息修改功能
+        */
+       
+        $('#userForm').on('submit', function (e) {
+            // 创建FormData构造函数的实例对象
+            var formData = new FormData(this);
+            // 阻止表单默认提交的行为
+            e.preventDefault()
+            // 向服务器端发送请求 实现管理员信息修改功能
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/userinfo_edit',
+                // 告诉$.ajax方法, 你在内部不要设置请求参数的格式
+                contentType: false,
+                // 告诉$.ajax方法, 你在内部不要转换请求参数的格式
+                processData: false,
+                data: formData,
+                success: function (response) {
+                    parent.window.location.reload();
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>
