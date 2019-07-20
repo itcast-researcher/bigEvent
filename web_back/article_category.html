@@ -34,7 +34,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
+                            <a href="javascript:;" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -50,20 +50,18 @@
               <h4 class="modal-title">新增分类</h4>
             </div>
             <div class="modal-body">
-              <form>
+              <form id="addCategory">
                 <div class="form-group">
                   <label for="recipient-name" class="control-label">分类名称:</label>
-                  <input type="text" class="form-control" id="recipient-name">
+                  <input type="text" class="form-control" id="recipient-name" name="name">
                 </div>
                 <div class="form-group">
                   <label for="message-text" class="control-label">分类别名:</label>
-                  <input type="text" class="form-control" id="recipient-name">
+                  <input type="text" class="form-control" id="recipient-name" name="slug">
                 </div>
+                <button type="button" class="btn btn-default" id="model_shutoff">关闭</button>
+                <input type="submit" class="btn btn-primary" value="新增">
               </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" id="model_shutoff">关闭</button>
-              <button type="button" class="btn btn-primary" id="model_add">新增</button>
             </div>
           </div>
         </div>
@@ -111,14 +109,51 @@
             2. 使用模板引擎将类别数据和HTML模板进行拼接
             3. 将模板引擎拼接好的HTML字符串展示到页面中
         */
-       $.ajax({
-            type: 'get',
-            url: 'http://localhost:8000/admin/category_search',
-            success: function (response) {
-                var html = template('categoryTpl', response);
-                $('#categoryBox').html(html);
-            }
-       })
+        
+        getCategory()
+
+        function getCategory() {
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8000/admin/category_search',
+                success: function (response) {
+                    var html = template('categoryTpl', response);
+                    $('#categoryBox').html(html);
+                }
+            })
+        }
+
+        /*
+            1. 为新增分类表单添加表单提交事件，在事件处理函数中阻止表单默认提交行为
+            2. 为表单中的每一个表单项添加name属性，name属性值必须和接口文档中要求的参数名称保持一致
+            3. 当用户提交表单时，获取用户在表单中填写的内容
+            4. 向服务器端发送请求，将表单内容作为请求参数传递到服务器端，实现新增类别功能
+            5. 重新获取文章类别数据，让页面中显示最新的类别数据
+        */
+        
+        $('#addCategory').on('submit', function (e) {
+            // 阻止表单默认提交的行为
+            e.preventDefault();
+            // 获取表单中的内容
+            var formData = $(this).serialize();
+            // 向服务器端发送ajax请求 实现类别添加功能
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/category_add',
+                data: formData,
+                success: function (response) {
+                    // 请求成功
+                    if (response.code == 200) {
+                        // 获取最新的分类数据并展示在页面中
+                        getCategory()
+                        // 隐藏弹出框
+                        $('#addModal').modal('hide');
+                        // 重置表单
+                        $('#addCategory')[0].reset();
+                    }
+                }
+            })
+        })
     </script>
 </body>
 
