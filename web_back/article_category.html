@@ -96,9 +96,8 @@
             <td>{{$value.name}}</td>
             <td>{{$value.slug}}</td>
             <td class="text-center">
-                <a href="javascript:editTr({&quot;id&quot;:&quot;1&quot;,&quot;slug&quot;:&quot;uncategorized&quot;,&quot;name&quot;:&quot;未分类&quot;});"
-                    class="btn btn-info btn-xs">编辑</a>
-                <a href="javascript:deleteTr( 1 );" class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:;" class="btn btn-info btn-xs">编辑</a>
+                <a href="javascript:;" class="btn btn-danger btn-xs remove" data-id="{{$value.id}}">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -153,6 +152,38 @@
                     }
                 }
             })
+        })
+
+        /*
+            #### 1.2.3 删除类别
+
+            1. 将要删除的类别ID渲染到删除按钮的自定义属性上，方便获取
+            2. 使用事件委托的方式为删除按钮添加点击事件
+            3. 在事件处理函数中获取到要删除的类别的ID
+            4. 弹出删除确认框，跟管理员确认删除操作，防止管理员误操作
+            5. 向服务器端发送请求，并将要删除的类别ID作为请求参数传递到服务器端，实现删除功能
+            6. 重新获取文章类别，让页面中显示最新的文章类别数据
+        */
+        
+        $('#categoryBox').on('click', '.remove', function () {
+            // 获取到要删除的类别的id
+            var id = $(this).attr('data-id');
+            // 弹出删除确认框
+            if (confirm('您真的要删除吗')) {
+                $.ajax({
+                    type: 'post',
+                    url: 'http://localhost:8000/admin/category_delete',
+                    data: {
+                        id: id
+                    },
+                    success: function (response) {
+                        if (response.code == 200) {
+                            // 获取类别数据并展示在页面中
+                            getCategory()
+                        }
+                    }
+                })
+            }
         })
     </script>
 </body>
