@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="addModal" >
+    <div class="modal fade" id="addModal">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
@@ -67,6 +67,23 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="modifyModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">修改文章分类</h4>
+          </div>
+          <div class="modal-body">
+            <form id="modifyCategory">
+                
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
         $('#addModal').modal({
           show:false,
@@ -79,28 +96,35 @@
 
         $('#model_add').click(function(){
           $('#addModal').modal('hide');
-        });
-
-        $('.category_table').delegate('a','click',function(){
-            if($(this).hasClass('btn-info')){
-              $('#addModal .modal-title').html('修改分类名称');
-              $('#addModal').modal('show');
-            }
-        })      
+        });     
     </script>
     
     <script src="js/template-web.js"></script>
+    <!-- 文章类别添加模板 -->
     <script type="text/html" id="categoryTpl">
         {{each data}}
         <tr>
             <td>{{$value.name}}</td>
             <td>{{$value.slug}}</td>
             <td class="text-center">
-                <a href="javascript:;" class="btn btn-info btn-xs">编辑</a>
+                <a href="#" class="btn btn-info btn-xs edit" data-toggle="modal" data-target="#modifyModal" data-category="{{$value}}">编辑</a>
                 <a href="javascript:;" class="btn btn-danger btn-xs remove" data-id="{{$value.id}}">删除</a>
             </td>
         </tr>
         {{/each}}
+    </script>
+    <!-- 文章类别修改模板 -->
+    <script type="text/html" id="modifyCategoryTpl">
+        <div class="form-group">
+          <label for="recipient-name" class="control-label">分类名称:</label>
+          <input type="text" class="form-control" id="category-name" value="{{name}}">
+        </div>
+        <div class="form-group">
+          <label for="message-text" class="control-label">分类别名:</label>
+          <input type="text" class="form-control" id="recipient-slug" value="{{slug}}">
+        </div>
+        <input type="hidden" value="{{id}}" id="categoryId">
+        <input type="button" name="" class="btn btn-primary modifyCategoryBtn" value="修改">
     </script>
     <script type="text/javascript">
         /*
@@ -184,6 +208,53 @@
                     }
                 })
             }
+        });
+
+        /*
+            #### 1.2.4 修改类别
+
+            1. 到bootstrap框架的官网上复制模态框的HTML代码，并让编辑按钮被点击的时候触发这个模态框
+            2. 为编辑按钮添加自定义属性data-category，并且将类别信息存储在这个自定义属性中
+            3. 使用事件委托的方式为编辑按钮添加点击事件
+            4. 在事件处理函数中获取到即将要编辑的文章类别信息
+            5. 使用模板引擎将文章类别信息和表单HTML字符串进行拼接并将拼接结果显示在页面中
+            6. 为修改按钮添加点击事件，在事件处理函数中获取到管理员在表单中输入的内容
+            7. 向服务器端发送Ajax请求，并将表单信息作为请求参数传递到服务器端，实现文章类别修改功能
+            8.  隐藏弹出框，并重新获取类别数据，让页面中显示最新的文章类别数据
+        */
+        $('#categoryBox').on('click', '.edit', function () {
+            // 获取即将要编辑的类别信息
+            var category = JSON.parse($(this).attr('data-category'));
+            // 将数据和模板进行拼接
+            var html = template('modifyCategoryTpl', category);
+            // 将拼接的结果显示
+            $('#modifyCategory').html(html);
+        })
+
+        $('#modifyCategory').on('click', '.modifyCategoryBtn', function () {
+            // 获取分类名称
+            var categoryName = $('#category-name').val();
+            // 获取分类别名
+            var categorySlug = $('#recipient-slug').val();
+            // 获取分类id
+            var categoryId = $('#categoryId').val();
+            // 向服务器端发送请求 实现文章类别修改功能
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/category_edit',
+                data: {
+                    name: categoryName,
+                    slug: categorySlug,
+                    id: categoryId
+                },
+                success: function (response) {
+                    console.log(response)
+                    // 隐藏弹出框
+                    $('#modifyModal').modal('hide');
+                    // 获取最新的文章类别数据
+                    getCategory()
+                }
+            })
         })
     </script>
 </body>
